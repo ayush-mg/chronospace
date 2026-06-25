@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"RomanEmpire","startYear":117,"endYear":395},"geometry":{"type":"MultiPolygon","coordinates":[[[[12.4,41.9],[12.5,42.0],[12.6,41.8],[12.4,41.9]]]]}}]}
