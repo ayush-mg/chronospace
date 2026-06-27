@@ -1,20 +1,23 @@
 import psycopg2
 import json
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 chronoscapeApp=FastAPI()
-
+chronoscapeApp.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"]
+)
 @chronoscapeApp.get("/")
 def checkSystemStatus():
 	return {"server":"running","database":"connected"}
-
 @chronoscapeApp.get("/boundaries/{year}")
-def getBoundariesByYear(year: int):
+def getBoundariesByYear(year:int):
 	try:
 		dbConn=psycopg2.connect(dbname="postgres",user="postgres",password="prashnmark",host="localhost",port="5432")
 		cursorObj=dbConn.cursor()
-		
-		# The mathematical query
 		sqlQuery="""
 			SELECT regionName, ST_AsGeoJSON(geom) 
 			FROM historicalBoundaries 
@@ -22,23 +25,18 @@ def getBoundariesByYear(year: int):
 		"""
 		cursorObj.execute(sqlQuery,(year,year))
 		records=cursorObj.fetchall()
-		
-		# Package the raw data back into clean JSON format
 		features=[]
 		for row in records:
-			region_name=row[0]
-			geometry_json=json.loads(row[1])
-			
+			regionname=row[0]
+			geometryjson=json.loads(row[1])
 			feature={
 				"type":"Feature",
-				"properties":{"name":region_name},
-				"geometry":geometry_json
+				"properties":{"name":regionname},
+				"geometry":geometryjson
 			}
 			features.append(feature)
-			
 		cursorObj.close()
 		dbConn.close()
 		return {"type":"FeatureCollection","features":features}
-		
 	except Exception as err:
 		return {"error":str(err)}
